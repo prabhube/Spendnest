@@ -1,66 +1,87 @@
-import { SymbolView } from 'expo-symbols';
-import { Link, Tabs } from 'expo-router';
-import { Platform, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Redirect, Tabs } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { profile, loading } = useAuth();
+  const theme = useTheme();
+
+  if (!loading && !profile) {
+    return <Redirect href="/login" />;
+  }
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
+        headerShown: false,
+        tabBarActiveTintColor: theme.forest,
+        tabBarInactiveTintColor: theme.muted,
+        tabBarStyle: {
+          backgroundColor: theme.tabBar,
+          borderTopColor: theme.border,
+          height: 68,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+          paddingBottom: 8,
+        },
       }}>
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'chevron.left.forwardslash.chevron.right',
-                android: 'code',
-                web: 'code',
-              }}
-              tintColor={color}
-              size={28}
-            />
-          ),
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable style={{ marginRight: 15 }}>
-                {({ pressed }) => (
-                  <SymbolView
-                    name={{ ios: 'info.circle', android: 'info', web: 'info' }}
-                    size={25}
-                    tintColor={Colors[colorScheme].text}
-                    style={{ opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
+          title: 'Home',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="expenses"
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'chevron.left.forwardslash.chevron.right',
-                android: 'code',
-                web: 'code',
-              }}
-              tintColor={color}
-              size={28}
+          title: 'Expenses',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'list' : 'list-outline'} size={22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="add-expense"
+        options={{
+          title: 'Add',
+          tabBarLabel: () => null,
+          tabBarIcon: () => null,
+          tabBarButton: ({ onPress }) => (
+            <Pressable onPress={onPress} style={styles.addWrap}>
+              <View style={[styles.addButton, { backgroundColor: theme.forest }]}>
+                <Text style={styles.addLabel}>+</Text>
+              </View>
+            </Pressable>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="budget"
+        options={{
+          title: 'Budget',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'pie-chart' : 'pie-chart-outline'} size={22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="more"
+        options={{
+          title: 'More',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'ellipsis-horizontal' : 'ellipsis-horizontal-outline'}
+              size={22}
+              color={color}
             />
           ),
         }}
@@ -68,3 +89,25 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  addWrap: {
+    top: -14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButton: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+  },
+  addLabel: {
+    color: '#FFFDF8',
+    fontSize: 32,
+    fontWeight: '600',
+    marginTop: -2,
+  },
+});
